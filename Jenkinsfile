@@ -1,7 +1,9 @@
 pipeline {
     agent any
+
     stages {
-        stage('build') {
+
+        stage('Build') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -10,49 +12,50 @@ pipeline {
             }
             steps {
                 sh '''
-                    ls -la
                     node --version
                     npm --version
                     npm ci
                     npm run build
-                    ls -la
                 '''
             }
         }
-        stage('Test'){
-                        agent {
+
+        stage('Test') {
+            agent {
                 docker {
                     image 'node:18-alpine'
                     reuseNode true
                 }
             }
-           steps {
-            echo 'TEST stage'
-            sh '''test -f build/index.html
-                npm test
-            '''
-           }
-           post{
-            always{
-               junit 'test-results/junit.xml' 
+            steps {
+                sh '''
+                    test -f build/index.html
+                    npm test
+                '''
             }
-           }
         }
-                stage('E2E'){
-                        agent {
+
+        stage('E2E') {
+            agent {
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.60.0-noble'
                     reuseNode true
                 }
             }
-           steps {
-            echo 'TEST stage'
-            sh '''npm install serve
-                node-modules/.bin/serve -s build &
-                sleep 10
-                npx playwright test
-            '''
-           }
+            steps {
+                sh '''
+                    npx serve -s build &
+                    sleep 10
+                    npx playwright test --reporter=html
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            junit allowEmptyResults: true,
+                  testResults: 'jest-results/junit.xml'
         }
     }
 }
