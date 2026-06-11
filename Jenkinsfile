@@ -47,15 +47,10 @@ pipeline {
             }
            steps {
             echo 'TEST stage'
-            sh '''npm install -g serve
-                serve -s build
+            sh '''npm install serve
+                node-modules/.bin/serve -s build
                 npx playwright test
             '''
-           }
-           post{
-            always{
-               junit 'test-results/junit.xml' 
-            }
            }
         }
     }
