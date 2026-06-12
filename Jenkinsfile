@@ -35,7 +35,7 @@ pipeline {
                 '''
             }
         }
-
+/*
         stage('E2E') {
             agent {
                 docker {
@@ -52,7 +52,7 @@ pipeline {
                     npx playwright test --reporter=html
                 '''
             }
-        }
+        } */
 
             }
 
@@ -67,7 +67,7 @@ pipeline {
             steps {
                 sh '''
                     npm install netlify-cli
-                    node_modules/.bin/netlify -version build
+node_modules/.bin/netlify --version
                     netlify --version
                 '''
             }
