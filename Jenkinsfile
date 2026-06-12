@@ -45,7 +45,9 @@ pipeline {
             }
             steps {
                 sh '''
-                    npx serve -s build &
+                    npm install serve
+                    node_modules/.bin/serve -s build &
+                    #npx serve -s build &
                     sleep 10
                     npx playwright test --reporter=html
                 '''
@@ -64,7 +66,8 @@ pipeline {
             }
             steps {
                 sh '''
-                    npm install -g netlify-cli
+                    npm install netlify-cli
+                    node_modules/.bin/netlify -version build
                     netlify --version
                 '''
             }
