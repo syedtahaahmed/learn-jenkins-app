@@ -20,7 +20,9 @@ stage("AWS") {
             // some block
                     sh '''
            aws --version
+           echo "hello s3" > index.html
            aws s3 ls
+           aws s3 cp index.html s3://jenkins-771358505973-eu-north-1-an/index.html
         '''
         }
 
@@ -74,7 +76,7 @@ stage("AWS") {
                     }
                 }
 
-                stage('E2E') {
+                // stage('E2E') {
                     // agent {
                     //     docker {
                     //         image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
@@ -96,7 +98,7 @@ stage("AWS") {
                     //         publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Local E2E', reportTitles: '', useWrapperFileDirectly: true])
                     //     }
                     // }
-                }
+                // }
             }
         }
 
