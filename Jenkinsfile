@@ -40,7 +40,7 @@ stage("AWS") {
         docker {
             image 'amazon/aws-cli'
             reuseNode true
-            args "--entrypoint=''"
+            args "-u root --entrypoint=''"
         }
     }
     // environment {
@@ -51,17 +51,18 @@ stage("AWS") {
             // some block
                     sh '''
            aws --version
+           yum install jq
            #echo "hello s3" > index.html
            #aws s3 ls
            #aws s3 cp index.html s3://$AWS_S3_BUCKET/index.html
            #aws s3 sync build s3://$AWS_S3_BUCKET
-           aws ecs register-task-definition \
-    --cli-input-json file://aws/task-defination.json
+          LATEST_TD_REVISION=$( aws ecs register-task-definition \
+    --cli-input-json file://aws/task-defination.json |jq '.taskDefination.revision')
 
     aws ecs update-service \
     --cluster learn-jenkins-app \
     --service learn-jenkins-app-task-def-service-ivr4xieg \
-    --task-definition learn-jenkins-app-task-def:2
+    --task-definition learn-jenkins-app-task-def:$LATEST_TD_REVISION
         '''
         }
 
