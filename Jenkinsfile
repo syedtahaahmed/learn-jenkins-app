@@ -57,6 +57,11 @@ stage("AWS") {
            #aws s3 sync build s3://$AWS_S3_BUCKET
            aws ecs register-task-definition \
     --cli-input-json file://aws/task-defination.json
+
+    aws ecs update-service \
+    --cluster learn-jenkins-app \
+    --service learn-jenkins-app-task-def-service-ivr4xieg \
+    --task-definition learn-jenkins-app-task-def:2
         '''
         }
 
