@@ -54,7 +54,7 @@ stage("AWS") {
            echo "hello s3" > index.html
            aws s3 ls
            #aws s3 cp index.html s3://$AWS_S3_BUCKET/index.html
-           aws s3 sync buld s3://$AWS_S3_BUCKET
+           aws s3 sync build s3://$AWS_S3_BUCKET
            aws ecs register-task-definition \
     --cli-input-json file://aws/task-defination.json
         '''
