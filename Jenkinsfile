@@ -5,6 +5,7 @@ pipeline {
         NETLIFY_SITE_ID = 'YOUR NETLIFY SITE ID'
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
         REACT_APP_VERSION = "1.0.$BUILD_ID"
+        AWS_DEFAULT_REGION = "us-east-1"
     }
 
     stages {
@@ -42,9 +43,9 @@ stage("AWS") {
             args "--entrypoint=''"
         }
     }
-    environment {
-        AWS_S3_BUCKET = 'jenkins-771358505973-eu-north-1-an'
-    }
+    // environment {
+    //     AWS_S3_BUCKET = 'jenkins-771358505973-eu-north-1-an'
+    // }
     steps {
         withCredentials([usernamePassword(credentialsId: 'aws-s3', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
             // some block
@@ -54,33 +55,35 @@ stage("AWS") {
            aws s3 ls
            #aws s3 cp index.html s3://$AWS_S3_BUCKET/index.html
            aws s3 sync buld s3://$AWS_S3_BUCKET
+           aws ecs register-task-definition \
+    --cli-input-json file://aws/task-defination.json
         '''
         }
 
     }
 }
-        stage('Tests') {
-            parallel {
-                stage('Unit tests') {
-                    agent {
-                        docker {
-                            image 'node:18-alpine'
-                            reuseNode true
-                        }
-                    }
+        // stage('Tests') {
+        //     parallel {
+        //         stage('Unit tests') {
+        //             agent {
+        //                 docker {
+        //                     image 'node:18-alpine'
+        //                     reuseNode true
+        //                 }
+        //             }
 
-                    steps {
-                        sh '''
-                            #test -f build/index.html
-                            npm test
-                        '''
-                    }
-                    post {
-                        always {
-                            junit 'jest-results/junit.xml'
-                        }
-                    }
-                }
+        //             steps {
+        //                 sh '''
+        //                     #test -f build/index.html
+        //                     npm test
+        //                 '''
+        //             }
+        //             post {
+        //                 always {
+        //                     junit 'jest-results/junit.xml'
+        //                 }
+        //             }
+        //         }
 
                 // stage('E2E') {
                     // agent {
@@ -105,10 +108,10 @@ stage("AWS") {
                     //     }
                     // }
                 // }
-            }
-        }
+        //     }
+        // }
 
-        stage('Deploy staging') {
+        // stage('Deploy staging') {
             // agent {
             //     docker {
             //         image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
@@ -116,30 +119,30 @@ stage("AWS") {
             //     }
             // }
 
-            environment {
-                CI_ENVIRONMENT_URL = 'STAGING_URL_TO_BE_SET'
-            }
+            // environment {
+            //     CI_ENVIRONMENT_URL = 'STAGING_URL_TO_BE_SET'
+            // }
 
-            steps {
-                sh '''
-                    npm install netlify-cli node-jq
-                    node_modules/.bin/netlify --version
-                    echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
-                    node_modules/.bin/netlify status
-                    node_modules/.bin/netlify deploy --dir=build --json > deploy-output.json
-                    CI_ENVIRONMENT_URL=$(node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json)
-                    # npx playwright test  --reporter=html
-                '''
-            }
+            // steps {
+            //     sh '''
+            //         npm install netlify-cli node-jq
+            //         node_modules/.bin/netlify --version
+            //         echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
+            //         node_modules/.bin/netlify status
+            //         node_modules/.bin/netlify deploy --dir=build --json > deploy-output.json
+            //         CI_ENVIRONMENT_URL=$(node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json)
+            //         # npx playwright test  --reporter=html
+            //     '''
+            // }
 
             // post {
             //     always {
             //         publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Staging E2E', reportTitles: '', useWrapperFileDirectly: true])
             //     }
             // }
-        }
+        // }
 
-        stage('Deploy prod') {
+        // stage('Deploy prod') {
             // agent {
             //     docker {
             //         image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
@@ -147,27 +150,27 @@ stage("AWS") {
             //     }
             // }
 
-            environment {
-                CI_ENVIRONMENT_URL = 'YOUR NETLIFY SITE URL'
-            }
+            // environment {
+            //     CI_ENVIRONMENT_URL = 'YOUR NETLIFY SITE URL'
+            // }
 
-            steps {
-                sh '''
-                    node --version
-                    npm install netlify-cli
-                    node_modules/.bin/netlify --version
-                    echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
-                    node_modules/.bin/netlify status
-                    node_modules/.bin/netlify deploy --dir=build --prod
-                    # npx playwright test  --reporter=html
-                '''
-            }
+            // steps {
+            //     sh '''
+            //         node --version
+            //         npm install netlify-cli
+            //         node_modules/.bin/netlify --version
+            //         echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
+            //         node_modules/.bin/netlify status
+            //         node_modules/.bin/netlify deploy --dir=build --prod
+            //         # npx playwright test  --reporter=html
+            //     '''
+            // }
 
             // post {
             //     always {
             //         publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Prod E2E', reportTitles: '', useWrapperFileDirectly: true])
             //     }
             // }
-        }
+        // }
     }
 }
