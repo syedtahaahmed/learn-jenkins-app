@@ -6,6 +6,7 @@ pipeline {
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
         REACT_APP_VERSION = "1.0.$BUILD_ID"
         AWS_DEFAULT_REGION = "us-east-1"
+        AWS_DOCKER_REGISTRY ="771358505973.dkr.ecr.us-east-1.amazonaws.com"
     }
 
     stages {
@@ -40,9 +41,19 @@ stage("AWS") {
         docker {
             image 'amazon/aws-cli'
             reuseNode true
-            args "-u root --entrypoint=''"
+            args "-u root -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=''"
         }
     }
+                steps {
+                withCredentials([usernamePassword(credentialsId: 'aws-s3', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+
+                sh '''
+                amazon-linux-extras install docker
+                docker build -t $AWS_DOCKER_REGISTRY/learn-jenkins-app:$REACT_APP_VERSION .
+                aws-ecr get-login-password | docker login --username AWS --password-stdin $AWS_DOCKER_REGISTRY
+                docker push $AWS_DOCKER_REGISTRY/learn-jenkins-app:$REACT_APP_VERSION
+                '''
+            }
     // environment {
     //     AWS_S3_BUCKET = 'jenkins-771358505973-eu-north-1-an'
     // }
@@ -63,6 +74,7 @@ stage("AWS") {
     --cluster learn-jenkins-app \
     --service learn-jenkins-app-task-def-service-ivr4xieg \
     --task-definition learn-jenkins-app-task-def:$LATEST_TD_REVISION
+    aws ecs wait services-stable --cluster learn-jenkins-app --services learn-jenkins-app-task-def-service-ivr4xieg
         '''
         }
 
